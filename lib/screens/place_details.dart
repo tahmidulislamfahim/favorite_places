@@ -9,7 +9,7 @@ class PlaceDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Future<void> _openGoogleMmap() async {
+    Future<void> openGoogleMmap() async {
       final lat = place.location.latitude;
       final lng = place.location.longitude;
 
@@ -46,7 +46,6 @@ class PlaceDetailsScreen extends StatelessWidget {
       }
     }
 
-    ;
     return Scaffold(
       appBar: AppBar(title: Text(place.title)),
       body: Stack(
@@ -82,7 +81,7 @@ class PlaceDetailsScreen extends StatelessWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(16),
                     child: GestureDetector(
-                      onTap: _openGoogleMmap,
+                      onTap: openGoogleMmap,
 
                       child: CircleAvatar(
                         radius: 70,
