@@ -9,6 +9,44 @@ class PlaceDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Future<void> _openGoogleMmap() async {
+      final lat = place.location.latitude;
+      final lng = place.location.longitude;
+
+      // Try opening in Google Maps app first
+      final googleMapsAppUrl = Uri.parse(
+        'geo:$lat,$lng?q=$lat,$lng(${place.location.address})',
+      );
+
+      // Fallback: open in browser
+      final googleMapsWebUrl = Uri.parse(
+        'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
+      );
+
+      try {
+        if (await canLaunchUrl(googleMapsAppUrl)) {
+          await launchUrl(
+            googleMapsAppUrl,
+            mode: LaunchMode.externalApplication,
+          );
+        } else if (await canLaunchUrl(googleMapsWebUrl)) {
+          await launchUrl(
+            googleMapsWebUrl,
+            mode: LaunchMode.externalApplication,
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not open Google Maps')),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error opening Google Maps: $e')),
+        );
+      }
+    }
+
+    ;
     return Scaffold(
       appBar: AppBar(title: Text(place.title)),
       body: Stack(
@@ -44,46 +82,7 @@ class PlaceDetailsScreen extends StatelessWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(16),
                     child: GestureDetector(
-                      onTap: () async {
-                        final lat = place.location.latitude;
-                        final lng = place.location.longitude;
-
-                        // Try opening in Google Maps app first
-                        final googleMapsAppUrl = Uri.parse(
-                          'geo:$lat,$lng?q=$lat,$lng(${place.title})',
-                        );
-
-                        // Fallback: open in browser
-                        final googleMapsWebUrl = Uri.parse(
-                          'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
-                        );
-
-                        try {
-                          if (await canLaunchUrl(googleMapsAppUrl)) {
-                            await launchUrl(
-                              googleMapsAppUrl,
-                              mode: LaunchMode.externalApplication,
-                            );
-                          } else if (await canLaunchUrl(googleMapsWebUrl)) {
-                            await launchUrl(
-                              googleMapsWebUrl,
-                              mode: LaunchMode.externalApplication,
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Could not open Google Maps'),
-                              ),
-                            );
-                          }
-                        } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Error opening Google Maps: $e'),
-                            ),
-                          );
-                        }
-                      },
+                      onTap: _openGoogleMmap,
 
                       child: CircleAvatar(
                         radius: 70,
