@@ -89,7 +89,7 @@ class _LocationInputState extends State<LocationInput> {
       previewContent = Column(
         children: [
           SizedBox(
-            height: 120,
+            height: 175,
             child: MyLocation(pickedLocation: _pickedLocation),
           ),
           if (_address != null)
@@ -97,6 +97,7 @@ class _LocationInputState extends State<LocationInput> {
               padding: const EdgeInsets.only(top: 8.0),
               child: Text(
                 _address!,
+                textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
@@ -110,7 +111,7 @@ class _LocationInputState extends State<LocationInput> {
       children: [
         Container(
           alignment: Alignment.center,
-          height: 170,
+          height: 250,
           width: double.infinity,
           decoration: BoxDecoration(
             border: Border.all(

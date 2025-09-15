@@ -29,12 +29,15 @@
     </application>
         <!-- Queries for URL schemes so canLaunchUrl works on Android 11+ -->
     <queries>
-          <!-- Google Maps app -->
         <package android:name="com.google.android.apps.maps" />
-        <!-- Web fallback -->
         <intent>
             <action android:name="android.intent.action.VIEW" />
-            <data android:scheme="https"/>
+            <data android:scheme="geo" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
         </intent>
     </queries>
+
 </manifest>

@@ -48,37 +48,33 @@ class PlaceDetailsScreen extends StatelessWidget {
                         final lat = place.location.latitude;
                         final lng = place.location.longitude;
 
-                        // Primary URL: Try to open the Google Maps app using the geo: scheme
+                        // Try opening in Google Maps app first
                         final googleMapsAppUrl = Uri.parse(
                           'geo:$lat,$lng?q=$lat,$lng(${place.title})',
                         );
 
-                        // Fallback URL: Open Google Maps in a browser if the app isn't installed
+                        // Fallback: open in browser
                         final googleMapsWebUrl = Uri.parse(
                           'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
                         );
 
                         try {
-                          // First, try launching the Google Maps app
                           if (await canLaunchUrl(googleMapsAppUrl)) {
                             await launchUrl(
                               googleMapsAppUrl,
                               mode: LaunchMode.externalApplication,
                             );
+                          } else if (await canLaunchUrl(googleMapsWebUrl)) {
+                            await launchUrl(
+                              googleMapsWebUrl,
+                              mode: LaunchMode.externalApplication,
+                            );
                           } else {
-                            // Fallback to web URL if the app isn't available
-                            if (await canLaunchUrl(googleMapsWebUrl)) {
-                              await launchUrl(
-                                googleMapsWebUrl,
-                                mode: LaunchMode.externalApplication,
-                              );
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Could not open Google Maps'),
-                                ),
-                              );
-                            }
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Could not open Google Maps'),
+                              ),
+                            );
                           }
                         } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -88,7 +84,14 @@ class PlaceDetailsScreen extends StatelessWidget {
                           );
                         }
                       },
-                      child: MyLocation(pickedLocation: place.location),
+
+                      child: CircleAvatar(
+                        radius: 70,
+                        child: IgnorePointer(
+                          // let taps fall through
+                          child: MyLocation(pickedLocation: place.location),
+                        ),
+                      ),
                     ),
                   ),
                 ),
