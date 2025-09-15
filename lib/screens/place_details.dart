@@ -1,6 +1,7 @@
-import 'package:favorite_places/common/title.dart';
-import 'package:favorite_places/models/place.dart';
+import 'package:favorite_places/widgets/my_location.dart';
 import 'package:flutter/material.dart';
+import 'package:favorite_places/models/place.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class PlaceDetailsScreen extends StatelessWidget {
   const PlaceDetailsScreen({super.key, required this.place});
@@ -9,14 +10,103 @@ class PlaceDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: AppTitle(title: place.title)),
+      appBar: AppBar(title: Text(place.title)),
       body: Stack(
         children: [
           Image.file(
             place.image,
-            fit: BoxFit.cover,
             width: double.infinity,
             height: double.infinity,
+            fit: BoxFit.cover,
+          ),
+          Positioned(
+            bottom: 20,
+            left: 20,
+            right: 20,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 🔹 Map preview with fixed height
+                Container(
+                  height: 200,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white, width: 2),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 5,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: GestureDetector(
+                      onTap: () async {
+                        final lat = place.location.latitude;
+                        final lng = place.location.longitude;
+
+                        // Primary URL: Try to open the Google Maps app using the geo: scheme
+                        final googleMapsAppUrl = Uri.parse(
+                          'geo:$lat,$lng?q=$lat,$lng(${place.title})',
+                        );
+
+                        // Fallback URL: Open Google Maps in a browser if the app isn't installed
+                        final googleMapsWebUrl = Uri.parse(
+                          'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
+                        );
+
+                        try {
+                          // First, try launching the Google Maps app
+                          if (await canLaunchUrl(googleMapsAppUrl)) {
+                            await launchUrl(
+                              googleMapsAppUrl,
+                              mode: LaunchMode.externalApplication,
+                            );
+                          } else {
+                            // Fallback to web URL if the app isn't available
+                            if (await canLaunchUrl(googleMapsWebUrl)) {
+                              await launchUrl(
+                                googleMapsWebUrl,
+                                mode: LaunchMode.externalApplication,
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Could not open Google Maps'),
+                                ),
+                              );
+                            }
+                          }
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Error opening Google Maps: $e'),
+                            ),
+                          );
+                        }
+                      },
+                      child: MyLocation(pickedLocation: place.location),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Text(
+                    place.location.address,
+                    style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

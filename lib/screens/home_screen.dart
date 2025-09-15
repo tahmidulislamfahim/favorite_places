@@ -1,9 +1,9 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:favorite_places/common/title.dart';
 import 'package:favorite_places/providers/user_places.dart';
 import 'package:favorite_places/screens/new_place_screen.dart';
 import 'package:favorite_places/widgets/places_list.dart';
-import 'package:flutter/material.dart';
-import 'package:favorite_places/common/title.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -11,17 +11,18 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userPlaces = ref.watch(userPlacesProvider);
+
     return Scaffold(
       appBar: AppBar(
-        title: const AppTitle(title: 'Add New Place'),
+        title: const AppTitle(title: 'Your Places'),
         actions: [
           IconButton(
             onPressed: () {
-              Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (ctx) => NewPlaceScreen()));
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (ctx) => const NewPlaceScreen()),
+              );
             },
-            icon: Icon(Icons.add),
+            icon: const Icon(Icons.add),
           ),
         ],
       ),

@@ -13,15 +13,16 @@ class ImageInput extends StatefulWidget {
 
 class _ImageInputState extends State<ImageInput> {
   File? _selectedImage;
-  void _takePicture() async {
-    final imagePicker = ImagePicker();
-    final pickedImage = await imagePicker.pickImage(
-      source: ImageSource.camera,
+
+  final ImagePicker _imagePicker = ImagePicker();
+
+  Future<void> _pickImage(ImageSource source) async {
+    final pickedImage = await _imagePicker.pickImage(
+      source: source,
       maxWidth: 600,
     );
-    if (pickedImage == null) {
-      return;
-    }
+    if (pickedImage == null) return;
+
     final imageFile = File(pickedImage.path);
     setState(() {
       _selectedImage = imageFile;
@@ -29,16 +30,45 @@ class _ImageInputState extends State<ImageInput> {
     widget.onPickImage(imageFile);
   }
 
+  void _showPickOptionsDialog() {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Take Picture'),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                _pickImage(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Choose from Gallery'),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                _pickImage(ImageSource.gallery);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget content = TextButton.icon(
-      onPressed: _takePicture,
-      icon: const Icon(Icons.camera),
-      label: Text('Take Picture'),
+      onPressed: _showPickOptionsDialog,
+      icon: const Icon(Icons.camera_alt),
+      label: const Text('Add Image'),
     );
+
     if (_selectedImage != null) {
       content = GestureDetector(
-        onTap: _takePicture,
+        onTap: _showPickOptionsDialog,
         child: Image.file(
           _selectedImage!,
           fit: BoxFit.cover,
@@ -47,6 +77,7 @@ class _ImageInputState extends State<ImageInput> {
         ),
       );
     }
+
     return Container(
       decoration: BoxDecoration(
         border: Border.all(

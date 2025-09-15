@@ -1,18 +1,24 @@
+import 'package:favorite_places/models/place.dart';
+import 'package:favorite_places/screens/map_picker_screen.dart';
+import 'package:favorite_places/widgets/my_location.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart';
+import 'package:geocoding/geocoding.dart' as geocoding;
 
 class LocationInput extends StatefulWidget {
-  const LocationInput({super.key});
+  const LocationInput({super.key, required this.onSelectLocation});
+
+  final void Function(double lat, double lng, String address) onSelectLocation;
 
   @override
   State<LocationInput> createState() => _LocationInputState();
 }
 
 class _LocationInputState extends State<LocationInput> {
-  LocationData? _pickedLocation;
+  PlaceLocation? _pickedLocation;
   var _isGettingLocation = false;
+  String? _address;
 
   Future<void> _getCurrentLocation() async {
     final location = Location();
@@ -42,10 +48,29 @@ class _LocationInputState extends State<LocationInput> {
 
     final locationData = await location.getLocation();
 
+    final lat = locationData.latitude;
+    final lng = locationData.longitude;
+    if (lat == null || lng == null) {
+      return;
+    }
+
+    // 🔹 Convert to human readable address
+    final placemarks = await geocoding.placemarkFromCoordinates(lat, lng);
+    final place = placemarks.first;
+    final readableAddress =
+        "${place.street}, ${place.locality}, ${place.country}";
+
     setState(() {
       _isGettingLocation = false;
-      _pickedLocation = locationData;
+      _pickedLocation = PlaceLocation(
+        latitude: lat,
+        longitude: lng,
+        address: readableAddress,
+      );
+      _address = readableAddress;
     });
+
+    widget.onSelectLocation(lat, lng, readableAddress);
   }
 
   @override
@@ -61,48 +86,22 @@ class _LocationInputState extends State<LocationInput> {
     if (_isGettingLocation) {
       previewContent = const CircularProgressIndicator();
     } else if (_pickedLocation != null) {
-      previewContent = FlutterMap(
-        options: MapOptions(
-          initialCenter: LatLng(
-            _pickedLocation!.latitude!,
-            _pickedLocation!.longitude!,
-          ),
-          initialZoom: 15,
-          minZoom: 1,
-          maxZoom: 18,
-          interactionOptions: const InteractionOptions(
-            flags:
-                InteractiveFlag.doubleTapZoom |
-                InteractiveFlag.pinchZoom |
-                InteractiveFlag.drag,
-          ),
-          cameraConstraint: CameraConstraint.contain(
-            bounds: LatLngBounds(LatLng(-85.0, -180.0), LatLng(85.0, 180.0)),
-          ),
-        ),
+      previewContent = Column(
         children: [
-          TileLayer(
-            urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            userAgentPackageName: 'com.example.favorite_places',
+          SizedBox(
+            height: 120,
+            child: MyLocation(pickedLocation: _pickedLocation),
           ),
-          MarkerLayer(
-            markers: [
-              Marker(
-                width: 80.0,
-                height: 80.0,
-                alignment: Alignment.center,
-                point: LatLng(
-                  _pickedLocation!.latitude!,
-                  _pickedLocation!.longitude!,
-                ),
-                child: const Icon(
-                  Icons.location_on,
-                  color: Colors.red,
-                  size: 40,
+          if (_address != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Text(
+                _address!,
+                style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
-            ],
-          ),
+            ),
         ],
       );
     }
@@ -130,8 +129,36 @@ class _LocationInputState extends State<LocationInput> {
               label: const Text('Get Current Location'),
             ),
             TextButton.icon(
-              onPressed: () {
-                // TODO: Add map selection
+              onPressed: () async {
+                final pickedPoint = await Navigator.of(context).push<LatLng>(
+                  MaterialPageRoute(builder: (ctx) => const MapPickerScreen()),
+                );
+
+                if (pickedPoint == null) return;
+
+                // 🔹 Convert to address
+                final placemarks = await geocoding.placemarkFromCoordinates(
+                  pickedPoint.latitude,
+                  pickedPoint.longitude,
+                );
+                final place = placemarks.first;
+                final readableAddress =
+                    "${place.street}, ${place.locality}, ${place.country}";
+
+                setState(() {
+                  _pickedLocation = PlaceLocation(
+                    latitude: pickedPoint.latitude,
+                    longitude: pickedPoint.longitude,
+                    address: readableAddress,
+                  );
+                  _address = readableAddress;
+                });
+
+                widget.onSelectLocation(
+                  pickedPoint.latitude,
+                  pickedPoint.longitude,
+                  readableAddress,
+                );
               },
               icon: const Icon(Icons.map),
               label: const Text('Select on Map'),

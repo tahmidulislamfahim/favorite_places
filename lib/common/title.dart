@@ -9,7 +9,7 @@ class AppTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       title,
-      style: Theme.of(context).textTheme.titleMedium!.copyWith(
+      style: Theme.of(context).textTheme.titleLarge!.copyWith(
         color: Theme.of(context).colorScheme.onSurface,
       ),
     );
