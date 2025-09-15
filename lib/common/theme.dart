@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 final theme = ThemeData().copyWith(
-  useMaterial3: true,
-  scaffoldBackgroundColor: colorScheme.background,
+  scaffoldBackgroundColor: colorScheme.surface,
   colorScheme: colorScheme,
   textTheme: GoogleFonts.ubuntuCondensedTextTheme().copyWith(
     titleSmall: GoogleFonts.ubuntuCondensed(fontWeight: FontWeight.bold),
